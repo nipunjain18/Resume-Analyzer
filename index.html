@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Resume Intelligence System — Futuristic ATS Analyzer</title>
+  <meta name="description" content="Analyze resumes using AI and discover why recruiters accept or reject candidates. Get ATS scores, skill gap analysis, and actionable improvement insights.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+</head>
+<body>
+
+  <!-- ─── PARTICLE BACKGROUND ─── -->
+  <canvas id="particleBg"></canvas>
+
+  <!-- ─── AMBIENT GLOW LAYERS ─── -->
+  <div class="bg-glow"></div>
+  <div class="bg-glow-2"></div>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon">⬡</span>
+      <span class="brand-text">AI RESUME<span class="accent"> INTEL</span></span>
+    </div>
+    <div class="nav-tagline">INTELLIGENCE SYSTEM v4.0</div>
+    <div class="nav-status">
+      <span class="status-dot"></span>
+      <span>SYSTEM ONLINE</span>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- ─── HERO SECTION ─── -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section class="hero-section" id="uploadSection">
+
+    <!-- Three.js 3D Neural Network Container -->
+    <div class="hero-3d-container" id="hero3d"></div>
+
+    <!-- Hero Text Content -->
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-pulse"></span>
+        <span>◈ Neural Engine Active</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="title-line">AI Resume</span>
+        <span class="title-line"><span class="neon-text">Intelligence</span> System</span>
+      </h1>
+      <p class="hero-sub">
+        Analyze resumes using AI and discover why recruiters accept or reject candidates.
+        Get ATS scores, skill gap analysis, and actionable improvement insights.
+      </p>
+    </div>
+
+    <!-- Input Grid -->
+    <div class="input-grid">
+      <!-- Resume Upload Card -->
+      <div class="glass-card upload-card" id="dropZone">
+        <div class="card-header">
+          <div class="card-icon-wrap cyan">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+          </div>
+          <span class="card-label">Upload Resume</span>
+          <span class="card-badge">PDF</span>
+        </div>
+        <div class="drop-area" id="dropArea">
+          <div class="drop-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <p class="drop-text">Drag & Drop PDF here</p>
+          <p class="drop-sub">or</p>
+          <label class="btn-upload" for="resumeFile">Browse File</label>
+          <input type="file" id="resumeFile" accept=".pdf" hidden />
+        </div>
+        <div class="file-status" id="fileStatus">No file selected</div>
+        <div class="resume-preview" id="resumePreview"></div>
+      </div>
+
+      <!-- Job Description Card -->
+      <div class="glass-card jd-card">
+        <div class="card-header">
+          <div class="card-icon-wrap purple">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <span class="card-label">Job Description</span>
+        </div>
+        <div class="jd-textarea-wrapper">
+          <textarea
+            id="jobDescription"
+            class="jd-textarea"
+            placeholder=" "
+            spellcheck="false"
+          ></textarea>
+          <label class="floating-label">Paste the job description here...</label>
+        </div>
+        <div class="char-count" id="charCount">0 characters</div>
+      </div>
+    </div>
+
+    <!-- Analyze Button -->
+    <div class="analyze-wrapper">
+      <button class="btn-analyze" id="analyzeBtn" onclick="startAnalysis()">
+        <span class="btn-glow"></span>
+        <span class="btn-icon">◆</span>
+        <span>Analyze Resume</span>
+        <span class="btn-arrow">→</span>
+      </button>
+      <p class="analyze-note" id="analyzeNote">🔒 Zero data transmission. Fully local AI processing.</p>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- ─── AI SCANNER OVERLAY ─── -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="scanner-overlay" id="scannerOverlay">
+    <div class="scanner-box">
+      <div class="scan-visual">
+        <div class="scan-core"></div>
+        <div class="scan-ring ring-1"></div>
+        <div class="scan-ring ring-2"></div>
+        <div class="scan-ring ring-3"></div>
+        <div class="scan-beam"></div>
+      </div>
+      <div class="scanner-title">AI analyzing resume<span class="dots"></span></div>
+      <div class="scanner-progress-bar">
+        <div class="scanner-progress-fill" id="scannerProgressFill"></div>
+      </div>
+      <div class="scanner-steps" id="scannerSteps">
+        <div class="scanner-step" id="scanStep1">◈ Parsing Resume</div>
+        <div class="scanner-step" id="scanStep2">◈ Extracting Skills</div>
+        <div class="scanner-step" id="scanStep3">◈ Matching Job Description</div>
+        <div class="scanner-step" id="scanStep4">◈ Calculating ATS Score</div>
+        <div class="scanner-step" id="scanStep5">◈ Generating Insights</div>
+      </div>
+      <!-- Hacker Console -->
+      <div class="hacker-console" id="hackerConsole">
+        <div class="console-header">
+          <span class="console-dots"><span></span><span></span><span></span></span>
+          <span class="console-title">AI_INTEL_ENGINE v4.0</span>
+        </div>
+        <div class="console-body" id="consoleBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- ─── RESULTS DASHBOARD ─── -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section class="dashboard" id="dashboard" style="display:none;">
+
+    <!-- Dashboard Header -->
+    <div class="dash-header">
+      <div>
+        <div class="dash-badge">◈ ANALYSIS COMPLETE</div>
+        <h2 class="dash-title">AI Analysis Dashboard</h2>
+        <p class="dash-sub" id="dashJobTitle">vs. Job Description</p>
+      </div>
+      <div class="dash-actions">
+        <button class="btn-secondary" onclick="downloadReport()">⬇ Download Report</button>
+        <button class="btn-secondary" onclick="resetApp()">↺ New Analysis</button>
+      </div>
+    </div>
+
+    <!-- Stats Ticker -->
+    <div class="stats-ticker" id="statsTicker">
+      <div class="stat-cell">
+        <div class="stat-cell-label">Resume Words</div>
+        <div class="stat-cell-value" id="statResumeWords">0</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell-label">JD Words</div>
+        <div class="stat-cell-value" id="statJdWords">0</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell-label">Skills Detected</div>
+        <div class="stat-cell-value" id="statSkillsFound">0</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell-label">Keywords Matched</div>
+        <div class="stat-cell-value" id="statKwMatched">0</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-cell-label">Gaps Identified</div>
+        <div class="stat-cell-value" id="statGaps">0</div>
+      </div>
+    </div>
+
+    <div class="glass-card quick-summary-card">
+      <div class="quick-summary-top">
+        <div>
+          <div class="card-title compact"><span class="title-dot cyan"></span>Quick Read</div>
+          <div class="quick-summary-status" id="quickSummaryStatus">Overall fit: —</div>
+          <p class="quick-summary-copy" id="quickSummaryCopy"></p>
+        </div>
+        <div class="quick-summary-highlight" id="quickSummaryHighlight">—</div>
+      </div>
+      <div class="quick-summary-grid">
+        <div class="quick-summary-block">
+          <div class="quick-summary-label">What matches</div>
+          <div class="quick-chip-list" id="quickStrengthsList"></div>
+        </div>
+        <div class="quick-summary-block">
+          <div class="quick-summary-label">What to add</div>
+          <div class="quick-chip-list" id="quickGapsList"></div>
+        </div>
+        <div class="quick-summary-block action">
+          <div class="quick-summary-label">Best next move</div>
+          <p class="quick-action-text" id="quickActionText"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-tabs" id="dashboardTabs">
+      <button class="dashboard-tab active" type="button" data-panel="overviewPanel">Overview</button>
+      <button class="dashboard-tab" type="button" data-panel="skillsPanel">Skills</button>
+      <button class="dashboard-tab" type="button" data-panel="comparePanel">Compare</button>
+      <button class="dashboard-tab" type="button" data-panel="rewritePanel">Rewrite</button>
+      <button class="dashboard-tab" type="button" data-panel="detailsPanel">Details</button>
+    </div>
+
+    <div class="dashboard-panel active" id="overviewPanel">
+
+      <!-- ─── TOP SCORE METRICS ─── -->
+      <div class="score-grid compact-grid">
+      <!-- ATS Score -->
+      <div class="metric-card ats-primary">
+        <div class="metric-label">ATS Score</div>
+        <div class="circular-progress-wrap">
+          <canvas id="atsCircleChart" width="160" height="160"></canvas>
+          <div class="circular-score" id="circularScore">0%</div>
+        </div>
+        <div class="metric-verdict" id="scoreVerdict">—</div>
+      </div>
+
+      <!-- Skill Match Score -->
+      <div class="metric-card">
+        <div class="metric-icon cyan-glow">⚡</div>
+        <div class="metric-label">Skill Match</div>
+        <div class="metric-value" id="skillMatchScore">0%</div>
+        <div class="metric-bar-wrap">
+          <div class="metric-bar cyan" id="skillMatchBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Experience Relevance -->
+      <div class="metric-card">
+        <div class="metric-icon purple-glow">◉</div>
+        <div class="metric-label">Experience Relevance</div>
+        <div class="metric-value" id="expRelevanceScore">0%</div>
+        <div class="metric-bar-wrap">
+          <div class="metric-bar purple" id="expRelevanceBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Keyword Optimization -->
+      <div class="metric-card">
+        <div class="metric-icon blue-glow">🔑</div>
+        <div class="metric-label">Keyword Optimization</div>
+        <div class="metric-value" id="keywordOptScore">0%</div>
+        <div class="metric-bar-wrap">
+          <div class="metric-bar blue" id="keywordOptBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Rejection Risk -->
+      <div class="metric-card risk-card">
+        <div class="metric-icon danger-glow">⚠</div>
+        <div class="metric-label">Rejection Risk</div>
+        <div class="metric-value danger" id="rejectionRisk">—</div>
+        <div class="risk-tag" id="riskTag">—</div>
+      </div>
+      </div>
+
+      <!-- ─── AI RESUME IMPROVEMENT SUGGESTIONS ─── -->
+      <div class="section-header simple-header">
+        <span class="section-icon">💡</span>
+        <h3 class="section-title">What To Do Next</h3>
+        <p class="section-sub">The most important improvements first</p>
+      </div>
+      <div class="suggestions-grid" id="suggestionsGrid">
+        <!-- Filled dynamically -->
+      </div>
+    </div>
+
+    <div class="dashboard-panel" id="skillsPanel">
+
+      <!-- ─── SKILL GAP ANALYZER ─── -->
+      <div class="section-header simple-header">
+      <span class="section-icon">🎯</span>
+      <h3 class="section-title">Skill Match</h3>
+      <p class="section-sub">What you already cover and what is still missing</p>
+      </div>
+      <div class="skill-gap-grid">
+      <!-- Skills You Have -->
+      <div class="glass-card skill-col">
+        <div class="card-title"><span class="title-dot green"></span>Skills You Have</div>
+        <div class="skills-list" id="matchedSkillsList"></div>
+      </div>
+      <!-- Skills You're Missing -->
+      <div class="glass-card skill-col">
+        <div class="card-title"><span class="title-dot red"></span>Skills You're Missing</div>
+        <div class="skills-list" id="missingSkillsList"></div>
+      </div>
+      </div>
+
+      <!-- Skill Gap Progress Bars -->
+      <div class="glass-card skill-progress-card">
+        <div class="card-title"><span class="title-dot cyan"></span>Category Coverage</div>
+        <div id="skillProgressBars" class="skill-progress-list">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
+      <!-- ─── KEYWORDS CLOUD ─── -->
+      <div class="glass-card keywords-card">
+        <div class="card-title"><span class="title-dot purple"></span>Important Keywords</div>
+        <div class="keywords-cloud" id="keywordsCloud"></div>
+      </div>
+    </div>
+
+    <!-- ─── COMPARE PANEL ─── -->
+    <div class="dashboard-panel" id="comparePanel">
+      <div class="section-header simple-header">
+        <span class="section-icon">⚖</span>
+        <h3 class="section-title">Resume vs Job Description</h3>
+        <p class="section-sub">Side-by-side comparison of your resume against job requirements</p>
+      </div>
+
+      <!-- Score Breakdown Comparison -->
+      <div class="compare-breakdown glass-card">
+        <div class="card-title"><span class="title-dot cyan"></span>Score Breakdown</div>
+        <div class="compare-bars" id="compareBars"></div>
+      </div>
+
+      <!-- Side-by-side Keywords -->
+      <div class="compare-columns">
+        <div class="glass-card compare-col">
+          <div class="card-title"><span class="title-dot green"></span>Your Resume Contains</div>
+          <div class="compare-tag-list" id="compareResumeKw"></div>
+        </div>
+        <div class="glass-card compare-col">
+          <div class="card-title"><span class="title-dot red"></span>Job Requires (Missing)</div>
+          <div class="compare-tag-list" id="compareJdMissing"></div>
+        </div>
+      </div>
+
+      <!-- Skill Category Comparison Radar -->
+      <div class="glass-card chart-card">
+        <div class="card-title"><span class="title-dot purple"></span>Category-wise Comparison</div>
+        <div class="chart-wrap"><canvas id="compareRadarChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="dashboard-panel" id="rewritePanel">
+
+      <!-- ─── PRECISION REWRITE LAB ─── -->
+      <div class="section-header simple-header">
+      <span class="section-icon">🧬</span>
+      <h3 class="section-title">Rewrite Help</h3>
+      <p class="section-sub">Priority terms and plain templates you can copy into your resume</p>
+      </div>
+      <div class="rewrite-lab-grid">
+      <div class="glass-card rewrite-lab-panel">
+        <div class="card-title"><span class="title-dot amber"></span>Priority Targets</div>
+        <div class="priority-targets-grid" id="priorityTargetsGrid"></div>
+      </div>
+      <div class="glass-card rewrite-lab-panel">
+        <div class="card-title"><span class="title-dot blue"></span>Resume Bullet Blueprints</div>
+        <div class="rewrite-blueprints" id="rewriteBlueprintsList"></div>
+      </div>
+      </div>
+    </div>
+
+    <div class="dashboard-panel" id="detailsPanel">
+
+      <!-- ─── CHARTS ROW ─── -->
+      <div class="charts-grid">
+        <div class="glass-card chart-card">
+          <div class="card-title">
+            <span class="title-dot cyan"></span>
+            Resume vs Job Requirements
+          </div>
+          <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+        </div>
+
+        <div class="glass-card chart-card">
+          <div class="card-title">
+            <span class="title-dot purple"></span>
+            Skills Match Breakdown
+          </div>
+          <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="charts-grid single">
+        <div class="glass-card chart-card wide">
+          <div class="card-title">
+            <span class="title-dot blue"></span>
+            Resume Strength Categories
+          </div>
+          <div class="chart-wrap-line"><canvas id="lineChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="section-header simple-header">
+        <span class="section-icon">✅</span>
+        <h3 class="section-title">Resume Strengths</h3>
+        <p class="section-sub">Positive signals detected in your resume</p>
+      </div>
+      <div class="insights-grid" id="strengthsGrid">
+        <!-- Filled dynamically -->
+      </div>
+
+      <div class="section-header simple-header">
+        <span class="section-icon">🧠</span>
+        <h3 class="section-title">Detailed Insights</h3>
+        <p class="section-sub">Full analysis notes from the engine</p>
+      </div>
+      <div class="insights-grid" id="insightsGrid">
+        <!-- Filled dynamically -->
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="footer">
+    <span class="footer-credit">Made by CodeX Team</span>
+    <div class="footer-main">
+      <span>AI RESUME INTELLIGENCE SYSTEM © 2026</span>
+      <span class="footer-dot">⬡</span>
+      <span>Local analysis only</span>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/neural-network.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/animations.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/analyzer.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="script.js"></script>
+
+</body>
+</html>
