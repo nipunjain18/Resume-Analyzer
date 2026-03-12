@@ -130,6 +130,60 @@ function animateRewriteLab() {
 }
 
 // ═══════════════════════════════════════════════════
+// 3.5  INTELLIGENCE PANEL ANIMATIONS
+// ═══════════════════════════════════════════════════
+
+function animateIntelligencePanel() {
+  // Interview probability card
+  gsap.fromTo('.interview-prob-card', {
+    y: 40, opacity: 0, scale: 0.95,
+  }, {
+    y: 0, opacity: 1, scale: 1,
+    duration: 0.8, ease: 'back.out(1.2)',
+  });
+
+  // Role cards
+  gsap.fromTo('.role-card', {
+    y: 30, opacity: 0, scale: 0.92,
+  }, {
+    y: 0, opacity: 1, scale: 1,
+    duration: 0.6, stagger: 0.1,
+    ease: 'back.out(1.4)', delay: 0.2,
+    clearProps: 'transform,opacity',
+  });
+
+  // Risk insight cards
+  gsap.fromTo('.risk-insight-card', {
+    x: -30, opacity: 0,
+  }, {
+    x: 0, opacity: 1,
+    duration: 0.5, stagger: 0.08,
+    ease: 'power3.out', delay: 0.3,
+    clearProps: 'transform,opacity',
+  });
+
+  // Improvement cards
+  gsap.fromTo('.improvement-card', {
+    y: 24, opacity: 0,
+  }, {
+    y: 0, opacity: 1,
+    duration: 0.55, stagger: 0.1,
+    ease: 'power3.out', delay: 0.4,
+    clearProps: 'transform,opacity',
+  });
+
+  // Roadmap items
+  gsap.fromTo('.roadmap-item', {
+    x: -20, opacity: 0,
+  }, {
+    x: 0, opacity: 1,
+    duration: 0.4, stagger: 0.06,
+    ease: 'power2.out', delay: 0.5,
+    clearProps: 'transform,opacity',
+  });
+}
+
+// ═══════════════════════════════════════════════════
 // 4. CARD TILT + MAGNETIC HOVER
 // ═══════════════════════════════════════════════════
 

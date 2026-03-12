@@ -230,6 +230,7 @@
 
     <div class="dashboard-tabs" id="dashboardTabs">
       <button class="dashboard-tab active" type="button" data-panel="overviewPanel">Overview</button>
+      <button class="dashboard-tab" type="button" data-panel="intelligencePanel">Intelligence</button>
       <button class="dashboard-tab" type="button" data-panel="skillsPanel">Skills</button>
       <button class="dashboard-tab" type="button" data-panel="comparePanel">Compare</button>
       <button class="dashboard-tab" type="button" data-panel="rewritePanel">Rewrite</button>
@@ -298,6 +299,72 @@
       <div class="suggestions-grid" id="suggestionsGrid">
         <!-- Filled dynamically -->
       </div>
+    </div>
+
+    <div class="dashboard-panel" id="intelligencePanel">
+
+      <!-- ─── INTERVIEW PROBABILITY SCORE ─── -->
+      <div class="section-header simple-header">
+        <span class="section-icon">🎯</span>
+        <h3 class="section-title">Interview Probability</h3>
+        <p class="section-sub">AI-calculated chance of getting an interview call</p>
+      </div>
+      <div class="glass-card interview-prob-card" id="interviewProbCard">
+        <div class="interview-prob-layout">
+          <div class="interview-circle-wrap">
+            <canvas id="interviewCircle" width="200" height="200"></canvas>
+            <div class="interview-circle-score" id="interviewCircleScore">0%</div>
+          </div>
+          <div class="interview-prob-details">
+            <div class="interview-prob-level" id="interviewProbLevel">—</div>
+            <p class="interview-prob-desc" id="interviewProbDesc">Analyzing your interview chances...</p>
+            <div class="interview-prob-breakdown" id="interviewProbBreakdown"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── RECOMMENDED ROLES ─── -->
+      <div class="section-header simple-header">
+        <span class="section-icon">🧭</span>
+        <h3 class="section-title">Recommended Roles</h3>
+        <p class="section-sub">Best-fit job roles based on your detected skills</p>
+      </div>
+      <div class="roles-grid" id="rolesGrid">
+        <!-- Filled dynamically -->
+      </div>
+
+      <!-- ─── RECRUITER RISK INSIGHTS ─── -->
+      <div class="section-header simple-header">
+        <span class="section-icon">🛡️</span>
+        <h3 class="section-title">Recruiter Risk Insights</h3>
+        <p class="section-sub">Common rejection reasons recruiters might flag</p>
+      </div>
+      <div class="risk-insights-grid" id="riskInsightsGrid">
+        <!-- Filled dynamically -->
+      </div>
+
+      <!-- ─── AI RESUME IMPROVEMENT LAB ─── -->
+      <div class="section-header simple-header">
+        <span class="section-icon">🧪</span>
+        <h3 class="section-title">AI Resume Improvement Lab</h3>
+        <p class="section-sub">AI-enhanced rewrites for weak bullet points</p>
+      </div>
+      <div class="improvement-lab" id="improvementLab">
+        <!-- Filled dynamically -->
+      </div>
+
+      <!-- ─── SKILL GAP ROADMAP ─── -->
+      <div class="section-header simple-header">
+        <span class="section-icon">🗺️</span>
+        <h3 class="section-title">Skill Gap Roadmap</h3>
+        <p class="section-sub">Priority learning path to close your skill gaps</p>
+      </div>
+      <div class="glass-card roadmap-card">
+        <div class="roadmap-grid" id="roadmapGrid">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
     </div>
 
     <div class="dashboard-panel" id="skillsPanel">

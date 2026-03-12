@@ -78,6 +78,7 @@ function displayResults(results, jdText) {
   window._jdText = jdText;
   window._chartsRendered = false;
   window._compareChartRendered = false;
+  window._intelligenceRendered = false;
 
   initDashboardTabs(results);
   renderQuickSummary(results);
@@ -308,6 +309,13 @@ function setActiveDashboardPanel(panelId, results) {
     setTimeout(() => {
       renderComparePanel(results);
       window._compareChartRendered = true;
+    }, 80);
+  }
+
+  if (panelId === 'intelligencePanel' && !window._intelligenceRendered) {
+    setTimeout(() => {
+      renderIntelligencePanel(results);
+      window._intelligenceRendered = true;
     }, 80);
   }
 
@@ -710,9 +718,277 @@ function renderCompareRadar(results) {
   });
 }
 
+// ─── RENDER INTELLIGENCE PANEL ───────────────────────────────────────────────
+function renderIntelligencePanel(results) {
+  renderInterviewProbability(results.interviewProbability, results);
+  renderRecommendedRoles(results.recommendedRoles);
+  renderRecruiterRisks(results.recruiterRisks);
+  renderImprovementLab(results.resumeImprovements);
+  renderSkillGapRoadmap(results.skillGapRoadmap);
+  setTimeout(() => animateIntelligencePanel(), 200);
+}
+
+// ─── INTERVIEW PROBABILITY ───────────────────────────────────────────────────
+function renderInterviewProbability(prob, results) {
+  const scoreEl = document.getElementById('interviewCircleScore');
+  const levelEl = document.getElementById('interviewProbLevel');
+  const descEl  = document.getElementById('interviewProbDesc');
+  const breakdownEl = document.getElementById('interviewProbBreakdown');
+
+  if (!scoreEl) return;
+
+  // Animate the circular progress
+  renderInterviewCircle(prob.score, prob.color);
+
+  // Animate counter
+  animateCounter(scoreEl, prob.score, 1800);
+  scoreEl.textContent = '0%';
+  const counterEnd = () => { scoreEl.textContent = prob.score + '%'; };
+  setTimeout(counterEnd, 1900);
+
+  // Level badge
+  const colorMap = { green: 'var(--green)', amber: 'var(--amber)', red: 'var(--danger)' };
+  const bgMap = { green: 'rgba(16,185,129,0.12)', amber: 'rgba(245,158,11,0.12)', red: 'rgba(239,68,68,0.12)' };
+  levelEl.textContent = prob.level + ' Chance';
+  levelEl.style.color = colorMap[prob.color];
+  levelEl.style.background = bgMap[prob.color];
+
+  // Description
+  if (prob.score >= 70) {
+    descEl.textContent = 'Strong interview probability. Your resume aligns well with this position. Focus on preparation.';
+  } else if (prob.score >= 45) {
+    descEl.textContent = 'Moderate chance. Closing skill and keyword gaps could push you into the interview zone.';
+  } else {
+    descEl.textContent = 'Low probability. Significant resume tailoring is needed to pass ATS screening for this role.';
+  }
+
+  // Breakdown bars
+  breakdownEl.innerHTML = '';
+  const factors = [
+    { label: 'ATS Score',     value: results.atsScore,            weight: '35%', color: 'cyan' },
+    { label: 'Skill Match',   value: results.skillMatchScore,     weight: '35%', color: 'purple' },
+    { label: 'Keywords',      value: results.keywordOptimization, weight: '20%', color: 'blue' },
+    { label: 'Experience',    value: results.experienceRelevance, weight: '10%', color: 'green' },
+  ];
+  factors.forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'interview-factor-row';
+    row.innerHTML = `
+      <span class="interview-factor-label">${escapeHtml(f.label)}</span>
+      <div class="interview-factor-bar-track">
+        <div class="interview-factor-bar-fill ${f.color}" style="width:0%"></div>
+      </div>
+      <span class="interview-factor-value">${f.value}%</span>
+      <span class="interview-factor-weight">\u00d7${f.weight}</span>
+    `;
+    breakdownEl.appendChild(row);
+    setTimeout(() => {
+      row.querySelector('.interview-factor-bar-fill').style.width = f.value + '%';
+    }, 400);
+  });
+}
+
+function renderInterviewCircle(score, color) {
+  const canvas = document.getElementById('interviewCircle');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const size = 200;
+  const center = size / 2;
+  const radius = 80;
+  const lineWidth = 12;
+
+  const colorMap = {
+    green: { main: '#10b981', glow: 'rgba(16,185,129,0.4)' },
+    amber: { main: '#f59e0b', glow: 'rgba(245,158,11,0.4)' },
+    red:   { main: '#ef4444', glow: 'rgba(239,68,68,0.4)' },
+  };
+  const c = colorMap[color] || colorMap.green;
+
+  let currentAngle = 0;
+  const targetAngle = (score / 100) * Math.PI * 2;
+  const duration = 1500;
+  const start = performance.now();
+
+  function draw(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    currentAngle = targetAngle * eased;
+
+    ctx.clearRect(0, 0, size, size);
+
+    // Background track
+    ctx.beginPath();
+    ctx.arc(center, center, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+
+    // Glow
+    ctx.save();
+    ctx.shadowColor = c.glow;
+    ctx.shadowBlur = 20;
+
+    // Progress arc
+    ctx.beginPath();
+    ctx.arc(center, center, radius, -Math.PI / 2, -Math.PI / 2 + currentAngle);
+    ctx.strokeStyle = c.main;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    ctx.restore();
+
+    if (progress < 1) requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+// ─── RECOMMENDED ROLES ──────────────────────────────────────────────────────
+function renderRecommendedRoles(roles) {
+  const grid = document.getElementById('rolesGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  if (!roles || roles.length === 0) {
+    grid.innerHTML = '<div class="glass-card" style="padding:32px;text-align:center;color:var(--text-muted);grid-column:1/-1">No strong role matches detected. Add more skills to your resume.</div>';
+    return;
+  }
+
+  roles.forEach((role, i) => {
+    const card = document.createElement('div');
+    card.className = 'glass-card role-card';
+    card.style.animationDelay = `${i * 0.12}s`;
+
+    const confClass = role.confidence >= 70 ? 'high' : role.confidence >= 45 ? 'mid' : 'low';
+
+    card.innerHTML = `
+      <div class="role-card-top">
+        <span class="role-icon">${role.icon}</span>
+        <div class="role-info">
+          <div class="role-name">${escapeHtml(role.role)}</div>
+          <div class="role-match-count">${role.matchCount}/${role.totalSkills} skills matched</div>
+        </div>
+        <div class="role-confidence ${confClass}">${role.confidence}%</div>
+      </div>
+      <div class="role-skills-row">
+        ${role.matchedSkills.map(s => `<span class="role-skill-chip">${escapeHtml(s)}</span>`).join('')}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ─── RECRUITER RISK INSIGHTS ─────────────────────────────────────────────────
+function renderRecruiterRisks(risks) {
+  const grid = document.getElementById('riskInsightsGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  if (!risks || risks.length === 0) {
+    grid.innerHTML = '<div class="glass-card" style="padding:32px;text-align:center;color:var(--green);grid-column:1/-1">\u2705 No significant recruiter risks detected. Your resume is well-optimized!</div>';
+    return;
+  }
+
+  risks.forEach((risk, i) => {
+    const card = document.createElement('div');
+    card.className = `risk-insight-card ${risk.severity}`;
+    card.style.animationDelay = `${i * 0.1}s`;
+    card.innerHTML = `
+      <div class="risk-insight-icon">${risk.icon}</div>
+      <div class="risk-insight-content">
+        <div class="risk-insight-title">${escapeHtml(risk.title)}</div>
+        <div class="risk-insight-desc">${escapeHtml(risk.desc)}</div>
+      </div>
+      <div class="risk-severity-badge ${risk.severity}">${risk.severity.toUpperCase()}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ─── AI RESUME IMPROVEMENT LAB ───────────────────────────────────────────────
+function renderImprovementLab(improvements) {
+  const container = document.getElementById('improvementLab');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!improvements || improvements.length === 0) {
+    container.innerHTML = '<div class="glass-card" style="padding:32px;text-align:center;color:var(--green)">\u2705 No weak bullet points detected. Your resume language is strong!</div>';
+    return;
+  }
+
+  improvements.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'glass-card improvement-card';
+    card.style.animationDelay = `${i * 0.12}s`;
+
+    card.innerHTML = `
+      <div class="improvement-header">
+        <span class="improvement-number">#${i + 1}</span>
+        <span class="improvement-badge-before">BEFORE</span>
+      </div>
+      <div class="improvement-original">${escapeHtml(item.original)}</div>
+      <div class="improvement-arrow">\u2b07 AI Enhanced</div>
+      <div class="improvement-badge-after">AFTER</div>
+      <div class="improvement-improved">${escapeHtml(item.improved)}</div>
+      <button class="improvement-copy-btn" onclick="copyImprovement(this, '${escapeHtml(item.improved).replace(/'/g, "\\'")}')">
+        \ud83d\udccb Copy
+      </button>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function copyImprovement(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '\u2705 Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// ─── SKILL GAP ROADMAP ──────────────────────────────────────────────────────
+function renderSkillGapRoadmap(roadmap) {
+  const grid = document.getElementById('roadmapGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  if (!roadmap || roadmap.length === 0) {
+    grid.innerHTML = '<p style="color:var(--green);text-align:center;padding:24px;grid-column:1/-1">\u2705 No skill gaps detected for this role!</p>';
+    return;
+  }
+
+  roadmap.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'roadmap-item';
+    card.style.animationDelay = `${i * 0.08}s`;
+
+    const priorityClass = item.priority === 'Critical' ? 'critical' : item.priority === 'High' ? 'high' : 'medium';
+    const difficultyClass = item.difficulty === 'Advanced' ? 'advanced' : item.difficulty === 'Intermediate' ? 'intermediate' : 'beginner';
+
+    card.innerHTML = `
+      <div class="roadmap-rank">${i + 1}</div>
+      <div class="roadmap-info">
+        <div class="roadmap-skill-name">${escapeHtml(item.skill)}</div>
+        <div class="roadmap-meta">
+          <span class="roadmap-priority ${priorityClass}">${item.priority}</span>
+          <span class="roadmap-difficulty ${difficultyClass}">${item.difficulty}</span>
+          <span class="roadmap-time">\u23f1 ${item.timeWeeks} weeks</span>
+          <span class="roadmap-category">${escapeHtml(item.category)}</span>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
 // ─── RESET APP ───────────────────────────────────────────────────────────────
 function resetApp() {
   resumeText = '';
+  window._intelligenceRendered = false;
 
   document.getElementById('uploadSection').style.display = '';
   document.getElementById('dashboard').style.display = 'none';

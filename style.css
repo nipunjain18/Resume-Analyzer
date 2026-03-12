@@ -2392,3 +2392,611 @@ body {
   .dash-title { font-size: 1.4rem; }
 }
 
+
+/* ═══════════════════════════════════════════════════════════════
+   AI CAREER INTELLIGENCE — New Feature Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── INTERVIEW PROBABILITY CARD ─── */
+.interview-prob-card {
+  padding: 32px;
+  margin-bottom: 32px;
+  border-top: 3px solid var(--purple);
+  background: linear-gradient(180deg, rgba(168,85,247,0.04) 0%, transparent 40%), var(--bg-card);
+}
+
+.interview-prob-layout {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .interview-prob-layout {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.interview-circle-wrap {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.interview-circle-wrap canvas {
+  width: 200px;
+  height: 200px;
+}
+
+.interview-circle-score {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.8rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.interview-prob-details {
+  flex: 1;
+}
+
+.interview-prob-level {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 8px 20px;
+  border-radius: 50px;
+  margin-bottom: 14px;
+}
+
+.interview-prob-desc {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.interview-prob-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.interview-factor-row {
+  display: grid;
+  grid-template-columns: 90px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.interview-factor-label {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.interview-factor-bar-track {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+
+.interview-factor-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1.5s var(--ease);
+}
+
+.interview-factor-bar-fill.cyan   { background: linear-gradient(90deg, var(--cyan), var(--blue));   box-shadow: 0 0 8px var(--cyan-glow); }
+.interview-factor-bar-fill.purple { background: linear-gradient(90deg, var(--purple), var(--pink)); box-shadow: 0 0 8px var(--purple-glow); }
+.interview-factor-bar-fill.blue   { background: linear-gradient(90deg, var(--blue), var(--cyan));   box-shadow: 0 0 8px var(--blue-glow); }
+.interview-factor-bar-fill.green  { background: linear-gradient(90deg, var(--green), var(--cyan));  box-shadow: 0 0 8px var(--green-glow); }
+
+.interview-factor-value {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--cyan);
+  min-width: 30px;
+  text-align: right;
+}
+
+.interview-factor-weight {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  min-width: 32px;
+}
+
+@media (max-width: 540px) {
+  .interview-factor-row { grid-template-columns: 70px 1fr auto; }
+  .interview-factor-weight { display: none; }
+}
+
+/* ─── RECOMMENDED ROLES GRID ─── */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  margin-bottom: 40px;
+}
+
+.role-card {
+  padding: 24px;
+  transition: all 0.5s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.role-card::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: var(--radius);
+  background: conic-gradient(from 90deg, transparent 60%, var(--purple) 75%, var(--cyan) 85%, transparent 100%);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.5s ease;
+  animation: borderSpin 8s linear infinite;
+}
+
+.role-card:hover::after { opacity: 0.25; }
+
+.role-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: var(--border-hover);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 40px rgba(168,85,247,0.06);
+}
+
+.role-card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.role-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 14px rgba(168,85,247,0.3));
+}
+
+.role-info { flex: 1; }
+
+.role-name {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.role-match-count {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.role-confidence {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 12px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.role-confidence.high {
+  color: var(--green);
+  background: var(--green-dim);
+}
+
+.role-confidence.mid {
+  color: var(--amber);
+  background: rgba(245,158,11,0.1);
+}
+
+.role-confidence.low {
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.04);
+}
+
+.role-skills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.role-skill-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  background: rgba(168,85,247,0.08);
+  border: 1px solid rgba(168,85,247,0.18);
+  color: var(--purple);
+}
+
+/* ─── RECRUITER RISK INSIGHTS ─── */
+.risk-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 768px) { .risk-insights-grid { grid-template-columns: 1fr; } }
+
+.risk-insight-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s var(--ease);
+}
+
+.risk-insight-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  border-radius: 3px 0 0 3px;
+}
+
+.risk-insight-card.high::before {
+  background: var(--danger);
+  box-shadow: 0 0 20px var(--danger-glow);
+}
+
+.risk-insight-card.medium::before {
+  background: var(--amber);
+  box-shadow: 0 0 20px rgba(245,158,11,0.3);
+}
+
+.risk-insight-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-hover);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+}
+
+.risk-insight-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.risk-insight-content { flex: 1; }
+
+.risk-insight-title {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.risk-insight-desc {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.risk-severity-badge {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.risk-severity-badge.high {
+  background: rgba(239,68,68,0.12);
+  color: var(--danger);
+  border: 1px solid rgba(239,68,68,0.25);
+}
+
+.risk-severity-badge.medium {
+  background: rgba(245,158,11,0.12);
+  color: var(--amber);
+  border: 1px solid rgba(245,158,11,0.25);
+}
+
+/* ─── AI RESUME IMPROVEMENT LAB ─── */
+.improvement-lab {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 40px;
+}
+
+.improvement-card {
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  border-left: 3px solid var(--purple);
+}
+
+.improvement-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-hover);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.3), 0 0 30px rgba(168,85,247,0.04);
+}
+
+.improvement-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.improvement-number {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--purple);
+  background: var(--purple-dim);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(168,85,247,0.2);
+}
+
+.improvement-badge-before,
+.improvement-badge-after {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.improvement-badge-before {
+  background: rgba(239,68,68,0.1);
+  color: var(--danger);
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+.improvement-badge-after {
+  display: inline-block;
+  background: rgba(16,185,129,0.1);
+  color: var(--green);
+  border: 1px solid rgba(16,185,129,0.2);
+  margin-bottom: 8px;
+}
+
+.improvement-original {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(239,68,68,0.04);
+  border: 1px solid rgba(239,68,68,0.1);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.7;
+  margin-bottom: 12px;
+  text-decoration: line-through;
+  text-decoration-color: rgba(239,68,68,0.3);
+}
+
+.improvement-arrow {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--cyan);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 0 8px var(--cyan-glow));
+}
+
+.improvement-improved {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(16,185,129,0.06);
+  border: 1px solid rgba(16,185,129,0.15);
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.improvement-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,240,255,0.15);
+  background: rgba(0,240,255,0.04);
+  color: var(--cyan);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.improvement-copy-btn:hover {
+  background: rgba(0,240,255,0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,240,255,0.1);
+}
+
+.improvement-copy-btn.copied {
+  color: var(--green);
+  border-color: rgba(16,185,129,0.25);
+  background: rgba(16,185,129,0.1);
+}
+
+/* ─── SKILL GAP ROADMAP ─── */
+.roadmap-card {
+  padding: 28px;
+  margin-bottom: 40px;
+}
+
+.roadmap-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.roadmap-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.4s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.roadmap-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--cyan), var(--purple));
+  border-radius: 3px 0 0 3px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.roadmap-item:hover::before { opacity: 1; }
+
+.roadmap-item:hover {
+  background: rgba(0,240,255,0.03);
+  border-color: rgba(0,240,255,0.12);
+  transform: translateX(4px);
+}
+
+.roadmap-rank {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--cyan);
+  background: rgba(0,240,255,0.08);
+  border: 1px solid rgba(0,240,255,0.15);
+  flex-shrink: 0;
+}
+
+.roadmap-info { flex: 1; }
+
+.roadmap-skill-name {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.roadmap-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.roadmap-priority,
+.roadmap-difficulty,
+.roadmap-time,
+.roadmap-category {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.roadmap-priority.critical {
+  background: rgba(239,68,68,0.12);
+  color: var(--danger);
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+.roadmap-priority.high {
+  background: rgba(245,158,11,0.12);
+  color: var(--amber);
+  border: 1px solid rgba(245,158,11,0.2);
+}
+
+.roadmap-priority.medium {
+  background: rgba(59,130,246,0.12);
+  color: var(--blue);
+  border: 1px solid rgba(59,130,246,0.2);
+}
+
+.roadmap-difficulty.advanced {
+  background: rgba(168,85,247,0.12);
+  color: var(--purple);
+  border: 1px solid rgba(168,85,247,0.2);
+}
+
+.roadmap-difficulty.intermediate {
+  background: rgba(0,240,255,0.08);
+  color: var(--cyan);
+  border: 1px solid rgba(0,240,255,0.15);
+}
+
+.roadmap-difficulty.beginner {
+  background: rgba(16,185,129,0.1);
+  color: var(--green);
+  border: 1px solid rgba(16,185,129,0.2);
+}
+
+.roadmap-time {
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.roadmap-category {
+  background: rgba(255,255,255,0.03);
+  color: var(--text-muted);
+  border: 1px solid rgba(255,255,255,0.06);
+  text-transform: uppercase;
+}
+
+@media (max-width: 540px) {
+  .roadmap-meta { gap: 5px; }
+  .roadmap-item { padding: 12px 14px; }
+}
+

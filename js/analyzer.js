@@ -2213,6 +2213,15 @@ function analyzeResume(resumeTxt, jobDescTxt) {
     strengths,
     suggestions,
     resumeQuality,
+    // ── New AI Career Intelligence features ──
+    recommendedRoles: recommendJobRoles(resumeSkills),
+    interviewProbability: computeInterviewProbability(atsScore, skillMatchScore, keywordOptimization, experienceRelevance),
+    resumeImprovements: generateResumeImprovements(rawResume),
+    recruiterRisks: generateRecruiterRisks({
+      missingSkills, matchedSkills, skillMatchScore, keywordOptimization,
+      experienceRelevance, atsScore, resumeQuality, detectedSections, resumeLength,
+    }),
+    skillGapRoadmap: generateSkillGapRoadmap(missingSkills, jobDescTxt),
     stats: {
       resumeWordCount: resumeLength,
       jdWordCount: jobDescTxt.split(/\s+/).length,
@@ -2223,7 +2232,320 @@ function analyzeResume(resumeTxt, jobDescTxt) {
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// §16  WINDOW EXPORTS
+// §16  AI CAREER INTELLIGENCE — JOB ROLE RECOMMENDATION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const JOB_ROLE_RULES = [
+  { role: 'Frontend Developer',       icon: '🎨', skills: ['reactjs','angular','vuejs','svelte','nextjs','css','tailwind','html','javascript','typescript'], minMatch: 3 },
+  { role: 'Backend Developer',        icon: '⚙️', skills: ['nodejs','express','nestjs','django','flask','fastapi','spring','springboot','laravel','rails','java','python','go','rust','csharp','php'], minMatch: 3 },
+  { role: 'Full Stack Developer',     icon: '🔀', skills: ['reactjs','angular','vuejs','nodejs','express','nextjs','mongodb','postgresql','mysql','javascript','typescript'], minMatch: 4, requireBoth: {front:['reactjs','angular','vuejs','svelte','nextjs'],back:['nodejs','express','django','flask','fastapi','spring','nestjs','laravel','rails']} },
+  { role: 'AI / ML Engineer',         icon: '🤖', skills: ['machinelearning','deeplearning','tensorflow','pytorch','keras','scikitlearn','nlp','computervision','neuralnetwork','python','numpy','pandas'], minMatch: 3 },
+  { role: 'Data Scientist',           icon: '📊', skills: ['python','dataanalysis','datascience','pandas','numpy','matplotlib','seaborn','statistics','tableau','powerbi','r','scikitlearn','datavisualization'], minMatch: 3 },
+  { role: 'Data Engineer',            icon: '🛢️', skills: ['python','sql','spark','hadoop','airflow','etl','datapipeline','dataengineering','pyspark','kafka','aws','gcp'], minMatch: 3 },
+  { role: 'DevOps Engineer',          icon: '🚀', skills: ['docker','kubernetes','cicd','jenkins','terraform','ansible','aws','azure','gcp','linux','githubactions','prometheus','grafana'], minMatch: 3 },
+  { role: 'Cloud Architect',          icon: '☁️', skills: ['aws','azure','gcp','cloudcomputing','serverless','lambda','ec2','s3','terraform','kubernetes','docker','infrastructure'], minMatch: 4 },
+  { role: 'Mobile App Developer',     icon: '📱', skills: ['reactnative','swift','kotlin','flutter','dart','java','javascript','typescript'], minMatch: 2 },
+  { role: 'Cybersecurity Analyst',    icon: '🔐', skills: ['linux','networking','firewalls','encryption','oauth','jwt','security'], minMatch: 2 },
+  { role: 'UI/UX Designer',           icon: '🖌️', skills: ['figma','adobe','photoshop','css','html','tailwind','bootstrap','materialui','creative'], minMatch: 3 },
+  { role: 'QA / Test Engineer',       icon: '🧪', skills: ['selenium','jest','cypress','playwright','pytest','mocha','testing'], minMatch: 2 },
+  { role: 'Database Administrator',   icon: '🗄️', skills: ['sql','postgresql','mysql','mongodb','redis','oracle','sqlserver','databasedesign','queryoptimization','indexing'], minMatch: 3 },
+  { role: 'Technical Project Manager',icon: '📋', skills: ['projectmanagement','agile','scrum','jira','confluence','leadership','communication','stakeholdermanagement'], minMatch: 3 },
+];
+
+function recommendJobRoles(resumeSkills) {
+  const skillSet = new Set(resumeSkills.map(s => normalizeSkill(s)));
+  const scored = [];
+
+  for (const rule of JOB_ROLE_RULES) {
+    const matchedRoleSkills = rule.skills.filter(s => skillSet.has(s));
+    const matchCount = matchedRoleSkills.length;
+    if (matchCount < rule.minMatch) continue;
+
+    // For Full Stack, require at least one front + one back
+    if (rule.requireBoth) {
+      const hasFront = rule.requireBoth.front.some(s => skillSet.has(s));
+      const hasBack  = rule.requireBoth.back.some(s => skillSet.has(s));
+      if (!hasFront || !hasBack) continue;
+    }
+
+    const confidence = Math.min(Math.round((matchCount / rule.skills.length) * 100), 98);
+    scored.push({
+      role: rule.role,
+      icon: rule.icon,
+      confidence,
+      matchedSkills: matchedRoleSkills.map(formatSkillName),
+      totalSkills: rule.skills.length,
+      matchCount
+    });
+  }
+
+  return scored.sort((a, b) => b.confidence - a.confidence).slice(0, 5);
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §17  INTERVIEW PROBABILITY SCORE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function computeInterviewProbability(atsScore, skillMatchScore, keywordOptimization, experienceRelevance) {
+  const raw = (atsScore * 0.35) + (skillMatchScore * 0.35) + (keywordOptimization * 0.20) + (experienceRelevance * 0.10);
+  const score = Math.min(Math.round(raw), 99);
+  let level, color;
+  if (score >= 70) { level = 'High'; color = 'green'; }
+  else if (score >= 45) { level = 'Medium'; color = 'amber'; }
+  else { level = 'Low'; color = 'red'; }
+  return { score, level, color };
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §18  AI RESUME IMPROVEMENT LAB
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const IMPROVEMENT_TEMPLATES = [
+  { pattern: /^(built|created|made)\s+(a\s+)?(website|app|application|tool|platform)/i,
+    improve: (m) => `Developed a responsive ${m[3]} using modern frameworks and UI components, improving usability and performance across devices.` },
+  { pattern: /^(worked\s+on|helped\s+with)\s+(.+)/i,
+    improve: (m) => `Collaborated on ${m[2]}, contributing to architecture decisions and delivering measurable improvements in functionality and code quality.` },
+  { pattern: /^(did|handled|was\s+responsible\s+for)\s+(.+)/i,
+    improve: (m) => `Owned and executed ${m[2]}, streamlining processes and achieving quantifiable results that strengthened team output.` },
+  { pattern: /^(used|utilized|worked\s+with)\s+(.+)/i,
+    improve: (m) => `Leveraged ${m[2]} to architect scalable solutions, reducing development time and improving system reliability.` },
+  { pattern: /^(learned|studied|trained)\s+(.+)/i,
+    improve: (m) => `Acquired proficiency in ${m[2]} through hands-on projects, applying knowledge to deliver production-ready features.` },
+  { pattern: /^(fixed|solved|resolved)\s+(.+)/i,
+    improve: (m) => `Diagnosed and resolved ${m[2]}, reducing recurring issues by [X]% and improving system stability for end users.` },
+  { pattern: /^(managed|led|supervised)\s+(.+)/i,
+    improve: (m) => `Spearheaded ${m[2]}, coordinating cross-functional teams and delivering results on time while maintaining high quality standards.` },
+  { pattern: /^(tested|checked|verified)\s+(.+)/i,
+    improve: (m) => `Engineered comprehensive test suites for ${m[2]}, achieving [X]% code coverage and reducing production bugs by [X]%.` },
+];
+
+function generateResumeImprovements(rawText) {
+  const lines = String(rawText || '')
+    .replace(/[•●▪►·→⇒]/g, '\n')
+    .split(/\n+/)
+    .map(l => l.trim())
+    .filter(l => l.length > 15 && l.split(/\s+/).length >= 4 && l.split(/\s+/).length <= 25);
+
+  const improvements = [];
+  const WEAK_STARTERS = /^(built|created|made|worked|helped|did|handled|was|used|utilized|learned|studied|trained|fixed|solved|resolved|managed|led|supervised|tested|checked|verified)\b/i;
+
+  for (const line of lines) {
+    if (!WEAK_STARTERS.test(line)) continue;
+
+    for (const tmpl of IMPROVEMENT_TEMPLATES) {
+      const match = line.match(tmpl.pattern);
+      if (match) {
+        improvements.push({
+          original: line,
+          improved: tmpl.improve(match),
+        });
+        break;
+      }
+    }
+    if (improvements.length >= 5) break;
+  }
+
+  // Fallback: generic weak bullets
+  if (improvements.length === 0) {
+    const genericWeak = lines.filter(l => !/\d/.test(l) && l.split(/\s+/).length <= 12).slice(0, 3);
+    for (const line of genericWeak) {
+      improvements.push({
+        original: line,
+        improved: `${line.replace(/\.$/, '')}, resulting in measurable improvements in [key metric] and enhanced user experience.`,
+      });
+    }
+  }
+
+  return improvements.slice(0, 5);
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §19  RECRUITER RISK INSIGHTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function generateRecruiterRisks({
+  missingSkills, matchedSkills, skillMatchScore, keywordOptimization,
+  experienceRelevance, atsScore, resumeQuality, detectedSections, resumeLength
+}) {
+  const risks = [];
+
+  // Missing required skills
+  if (missingSkills.length > 3) {
+    const top = missingSkills.slice(0, 4).map(formatSkillName).join(', ');
+    risks.push({
+      severity: 'high',
+      icon: '🚫',
+      title: 'Missing Key Technologies',
+      desc: `Your resume is missing ${missingSkills.length} required skills: ${top}. These are likely hard filters in ATS screening.`,
+    });
+  } else if (missingSkills.length > 0) {
+    const top = missingSkills.map(formatSkillName).join(', ');
+    risks.push({
+      severity: 'medium',
+      icon: '⚠️',
+      title: 'Some Skills Not Found',
+      desc: `Missing: ${top}. Adding even basic proficiency can help pass initial screening.`,
+    });
+  }
+
+  // Low keyword match
+  if (keywordOptimization < 35) {
+    risks.push({
+      severity: 'high',
+      icon: '🔑',
+      title: 'Low Keyword Match',
+      desc: `Only ${keywordOptimization}% keyword overlap detected. Most ATS systems filter below 40%. Incorporate more job-specific terminology.`,
+    });
+  } else if (keywordOptimization < 55) {
+    risks.push({
+      severity: 'medium',
+      icon: '🔑',
+      title: 'Moderate Keyword Coverage',
+      desc: `${keywordOptimization}% keyword match is borderline. Adding 5-10 more targeted keywords could significantly improve your chances.`,
+    });
+  }
+
+  // Weak experience
+  if (experienceRelevance < 30) {
+    risks.push({
+      severity: 'high',
+      icon: '💼',
+      title: 'Weak Experience Section',
+      desc: `Experience relevance is only ${experienceRelevance}%. Rewrite bullet points to mirror the job description language and responsibilities.`,
+    });
+  } else if (experienceRelevance < 50) {
+    risks.push({
+      severity: 'medium',
+      icon: '💼',
+      title: 'Experience Needs Tailoring',
+      desc: `${experienceRelevance}% experience alignment. Tailor your bullet points to better reflect the specific requirements of this role.`,
+    });
+  }
+
+  // No measurable achievements
+  if (!resumeQuality.hasMetrics || resumeQuality.metricsCount < 2) {
+    risks.push({
+      severity: 'high',
+      icon: '📉',
+      title: 'No Quantified Achievements',
+      desc: 'Resume lacks measurable results. Recruiters strongly prefer impact statements like "increased revenue by 30%" or "reduced load time by 50%".',
+    });
+  }
+
+  // Missing action verbs
+  if (!resumeQuality.hasActionVerbs || resumeQuality.verbCount < 3) {
+    risks.push({
+      severity: 'medium',
+      icon: '✍️',
+      title: 'Weak Action Language',
+      desc: 'Few strong action verbs detected. Use words like "Architected", "Spearheaded", "Optimized" to convey leadership and ownership.',
+    });
+  }
+
+  // Missing sections
+  if (detectedSections) {
+    const missingSections = Object.entries(detectedSections).filter(([, v]) => !v).map(([k]) => k);
+    if (missingSections.length >= 2) {
+      risks.push({
+        severity: 'medium',
+        icon: '📋',
+        title: 'Missing Resume Sections',
+        desc: `Missing: ${missingSections.join(', ')}. Standard sections help ATS parse your resume correctly and reassure recruiters.`,
+      });
+    }
+  }
+
+  // Short resume
+  if (resumeLength < 200) {
+    risks.push({
+      severity: 'medium',
+      icon: '📄',
+      title: 'Resume Too Short',
+      desc: `Only ${resumeLength} words detected. Most competitive resumes have 400-700 words with detailed experience descriptions.`,
+    });
+  }
+
+  // Low ATS overall
+  if (atsScore < 40) {
+    risks.push({
+      severity: 'high',
+      icon: '🔴',
+      title: 'Critical ATS Score',
+      desc: `${atsScore}% ATS score is dangerously low. This resume would likely be auto-rejected by most applicant tracking systems.`,
+    });
+  }
+
+  return risks.sort((a, b) => (a.severity === 'high' ? 0 : 1) - (b.severity === 'high' ? 0 : 1)).slice(0, 6);
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §20  AI SKILL GAP ROADMAP
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const LEARNING_RESOURCES = {
+  docker:       { difficulty: 'Intermediate', timeWeeks: 3, category: 'DevOps' },
+  kubernetes:   { difficulty: 'Advanced',     timeWeeks: 6, category: 'DevOps' },
+  aws:          { difficulty: 'Intermediate', timeWeeks: 5, category: 'Cloud' },
+  azure:        { difficulty: 'Intermediate', timeWeeks: 5, category: 'Cloud' },
+  gcp:          { difficulty: 'Intermediate', timeWeeks: 5, category: 'Cloud' },
+  cicd:         { difficulty: 'Intermediate', timeWeeks: 3, category: 'DevOps' },
+  terraform:    { difficulty: 'Intermediate', timeWeeks: 4, category: 'DevOps' },
+  python:       { difficulty: 'Beginner',     timeWeeks: 4, category: 'Language' },
+  javascript:   { difficulty: 'Beginner',     timeWeeks: 4, category: 'Language' },
+  typescript:   { difficulty: 'Intermediate', timeWeeks: 3, category: 'Language' },
+  reactjs:      { difficulty: 'Intermediate', timeWeeks: 4, category: 'Frontend' },
+  nodejs:       { difficulty: 'Intermediate', timeWeeks: 3, category: 'Backend' },
+  machinelearning: { difficulty: 'Advanced',  timeWeeks: 8, category: 'AI/ML' },
+  deeplearning: { difficulty: 'Advanced',     timeWeeks: 8, category: 'AI/ML' },
+  sql:          { difficulty: 'Beginner',     timeWeeks: 2, category: 'Database' },
+  mongodb:      { difficulty: 'Beginner',     timeWeeks: 2, category: 'Database' },
+  postgresql:   { difficulty: 'Intermediate', timeWeeks: 3, category: 'Database' },
+  git:          { difficulty: 'Beginner',     timeWeeks: 1, category: 'Tools' },
+  linux:        { difficulty: 'Intermediate', timeWeeks: 3, category: 'Systems' },
+  graphql:      { difficulty: 'Intermediate', timeWeeks: 2, category: 'API' },
+  redis:        { difficulty: 'Intermediate', timeWeeks: 2, category: 'Database' },
+  systemdesign: { difficulty: 'Advanced',     timeWeeks: 6, category: 'Architecture' },
+  agile:        { difficulty: 'Beginner',     timeWeeks: 1, category: 'Process' },
+  scrum:        { difficulty: 'Beginner',     timeWeeks: 1, category: 'Process' },
+};
+
+function generateSkillGapRoadmap(missingSkills, jdText) {
+  const normJD = normalizeAnalysisText(jdText);
+  const roadmap = [];
+
+  for (const skill of missingSkills) {
+    const key = normalizeSkill(skill);
+    const occ = (normJD.match(new RegExp(escapeRegExp(key), 'g')) || []).length;
+    const meta = LEARNING_RESOURCES[key] || { difficulty: 'Intermediate', timeWeeks: 3, category: getSkillCategory(key) || 'Technical' };
+
+    // Priority: high-occurrence JD mentions + core technical categories
+    const priority = occ >= 3 ? 'Critical' : occ >= 2 ? 'High' : 'Medium';
+
+    roadmap.push({
+      skill: formatSkillName(key),
+      key,
+      priority,
+      difficulty: meta.difficulty,
+      timeWeeks: meta.timeWeeks,
+      category: typeof meta.category === 'string' ? meta.category : 'Technical',
+      occurrences: occ,
+    });
+  }
+
+  // Sort: Critical > High > Medium, then by occurrences
+  const priorityOrder = { Critical: 0, High: 1, Medium: 2 };
+  return roadmap
+    .sort((a, b) => (priorityOrder[a.priority] - priorityOrder[b.priority]) || (b.occurrences - a.occurrences))
+    .slice(0, 8);
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §21  WINDOW EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
 if (typeof window !== 'undefined') {
@@ -2239,4 +2561,9 @@ if (typeof window !== 'undefined') {
   window.capitalizeSkill            = capitalizeSkill;
   window.formatSkillName            = formatSkillName;
   window.analyzeResumeQuality       = analyzeResumeQuality;
+  window.recommendJobRoles          = recommendJobRoles;
+  window.computeInterviewProbability = computeInterviewProbability;
+  window.generateResumeImprovements = generateResumeImprovements;
+  window.generateRecruiterRisks     = generateRecruiterRisks;
+  window.generateSkillGapRoadmap    = generateSkillGapRoadmap;
 }
